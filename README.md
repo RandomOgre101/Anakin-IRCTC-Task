@@ -10,7 +10,9 @@
 - PostgreSQL
 - SQLAlchemy (ORM)
 
-### The SQL queries are done with SQLAlchemy and all documented in detail with comments within the source code files
+
+### The SQL queries are done with SQLAlchemy and are documented in detail with comments within the source code files
+
 
 ### To set up and run the project:
 - First clone the repository:
