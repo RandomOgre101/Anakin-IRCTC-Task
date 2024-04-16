@@ -34,8 +34,15 @@ def get_seat_availability(train_data: schemas.TrainSearch, db: Session = Depends
 @router.post("/book", status_code=status.HTTP_201_CREATED, response_model=schemas.TicketBookOut)
 def book_ticket(ticket: schemas.TicketBook, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     
-    with db.begin_nested():
+    # Check if a transaction is already started
+    if not db.in_transaction():
+        # Start a new transaction only if there isn't one already
+        transaction = db.begin()
+    else:
+        # Use the existing transaction
+        transaction = None
 
+    try:
         train_query = db.query(models.Train).filter(models.Train.id == ticket.train_no).with_for_update()
         train = train_query.first()
 
@@ -43,7 +50,7 @@ def book_ticket(ticket: schemas.TicketBook, db: Session = Depends(get_db), curre
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Train with id: {ticket.train_no} does not exist.")
         
         if ( train.seats == 0 or 
-            train.seats - ticket.tickets < 0
+             train.seats - ticket.tickets < 0
             ):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Train with id: {ticket.train_no} does not have enough seats.")
         
@@ -52,11 +59,19 @@ def book_ticket(ticket: schemas.TicketBook, db: Session = Depends(get_db), curre
 
         new_ticket = models.Booking(user_id=current_user.id, **ticket.model_dump())
         db.add(new_ticket)
-        db.commit()
-        db.refresh(new_ticket)
-        train_query.update({'seats': models.Train.seats - ticket.tickets}, synchronize_session=False)
-        db.commit()
+        train_query.update({'seats': models.Train.seats - ticket.tickets}, synchronize_session='fetch')
 
+        # If a new transaction was started, commit it
+        if transaction is not None:
+            transaction.commit()
+
+    except:
+        # If a new transaction was started, roll it back on error
+        if transaction is not None:
+            transaction.rollback()
+        raise
+
+    # Refresh or further operations with `new_ticket` can be done here, after ensuring the transaction is committed
     return new_ticket
 
 

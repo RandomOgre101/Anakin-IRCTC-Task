@@ -29,7 +29,7 @@ class TicketBook(BaseModel):
     tickets: int
 class TicketBookOut(TicketBook):
     user_id: int
-    created_at: datetime
+    # created_at: datetime
 
 
 class TrainSearch(BaseModel):
