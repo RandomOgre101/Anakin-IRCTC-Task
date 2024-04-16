@@ -1,6 +1,5 @@
 from ..DB.db_connection import Base
 from sqlalchemy import Column, Integer, String, Enum, ForeignKey
-from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.sql.expression import text
 from ..schemas.schemas import Roles
