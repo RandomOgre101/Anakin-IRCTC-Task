@@ -59,7 +59,7 @@ def book_ticket(ticket: schemas.TicketBook, db: Session = Depends(get_db), curre
     try:
         # Query the train which has the same id as the one passed in
         # with_for_update() locks the DB row, which ensures two users cannot book at the same time
-        train_query = db.query(models.Train).filter(models.Train.id == ticket.train_no) #.with_for_update()
+        train_query = db.query(models.Train).filter(models.Train.id == ticket.train_no).with_for_update()
         train = train_query.first()
 
         # Exception Handling: If train with passed in id doesnt exist, return 404 train doesnt exist 
