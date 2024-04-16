@@ -21,15 +21,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-
-
+# I added routers here to segregate the routes so it is easier to maintain, read and build on
 app.include_router(admin.router)
 app.include_router(user.router)
 app.include_router(user_booking.router)
 app.include_router(auth.router)
-
-
-@app.get("/test")
-def test():
-    return {"Hello": "world"}

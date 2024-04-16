@@ -6,7 +6,16 @@ from sqlalchemy.sql.expression import text
 from ..schemas.schemas import Roles
 
 
+# Here is where I have defined schemas for the databases using SQLAlchemy (ORM)
 
+
+
+# This is the users table, it contains:
+# user_id (Primary Key)
+# email of user
+# password of user (it will be hashed then stored)
+# role of user (ENUM: admin or user)
+# created_at (when the account was created)
 class User(Base):
     __tablename__ = "users"
     
@@ -17,6 +26,13 @@ class User(Base):
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
 
 
+
+# This is the trains table, it contains:
+# train_id
+# start (boarding station)
+# end (destination station)
+# departing_at (time and date of departure)
+# seats (amount of seats available on train)
 class Train(Base):
     __tablename__ = "trains"
 
@@ -27,6 +43,12 @@ class Train(Base):
     seats = Column(Integer, nullable=False)
 
 
+
+# This is the booking details table, it contains:
+# booking id
+# user_id (Foreign Key of user_id from users table)
+# train_no (Foreign Key of train_id from trains table)
+# created_at (date and time of the booking)
 class Booking(Base):
     __tablename__ = "bookingDetails"
 
