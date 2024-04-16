@@ -34,26 +34,28 @@ def get_seat_availability(train_data: schemas.TrainSearch, db: Session = Depends
 @router.post("/book", status_code=status.HTTP_201_CREATED, response_model=schemas.TicketBookOut)
 def book_ticket(ticket: schemas.TicketBook, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     
-    train_query = db.query(models.Train).filter(models.Train.id == ticket.train_no)
-    train = train_query.first()
+    with db.begin_nested():
 
-    if not train:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Train with id: {ticket.train_no} does not exist.")
-    
-    if ( train.seats == 0 or 
-         train.seats - ticket.tickets < 0
-        ):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Train with id: {ticket.train_no} does not have enough seats.")
-    
-    if train.departing_at < datetime.now():
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Train with id: {ticket.train_no} has departed.")
+        train_query = db.query(models.Train).filter(models.Train.id == ticket.train_no).with_for_update()
+        train = train_query.first()
 
-    new_ticket = models.Booking(user_id=current_user.id, **ticket.model_dump())
-    db.add(new_ticket)
-    db.commit()
-    db.refresh(new_ticket)
-    train_query.update({'seats': models.Train.seats - ticket.tickets})
-    db.commit()
+        if not train:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Train with id: {ticket.train_no} does not exist.")
+        
+        if ( train.seats == 0 or 
+            train.seats - ticket.tickets < 0
+            ):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Train with id: {ticket.train_no} does not have enough seats.")
+        
+        if train.departing_at < datetime.now():
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Train with id: {ticket.train_no} has departed.")
+
+        new_ticket = models.Booking(user_id=current_user.id, **ticket.model_dump())
+        db.add(new_ticket)
+        db.commit()
+        db.refresh(new_ticket)
+        train_query.update({'seats': models.Train.seats - ticket.tickets}, synchronize_session=False)
+        db.commit()
 
     return new_ticket
 
