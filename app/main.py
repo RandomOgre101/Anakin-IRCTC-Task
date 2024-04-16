@@ -5,8 +5,10 @@ from .DB.db_connection import engine
 from .DB import models
 
 
+# Create all database tables defined in models.py using the Base class
 models.Base.metadata.create_all(bind=engine)
 
+# Initializing the FastAPI app
 app = FastAPI()
 
 origins = [

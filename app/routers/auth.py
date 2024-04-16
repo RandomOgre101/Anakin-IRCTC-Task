@@ -38,7 +38,7 @@ def login(user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session =
     # Return the token
     return {"access_token": access_token, "token_type": "bearer"}
 
-
+load_dotenv()
 ADMIN_API_KEY = os.environ.get("ADMIN_API_KEY")
 
 # ADMIN route to login, verify and generate JWT for admin
