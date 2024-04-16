@@ -18,7 +18,7 @@ router = APIRouter(
 # Route for user to get information on trains from destination A to destination B
 # This route contains a dependency injection that establishes a connection to the database (I have used postgres here)
 # Schemas for the input output are clearly defined (refer schemas.py in schemas folder)
-@router.get('/train', response_model=List[schemas.TrainSearchOut])
+@router.post('/train', response_model=List[schemas.TrainSearchOut])
 def get_seat_availability(train_data: schemas.TrainSearch, db: Session = Depends(get_db)):
 
     # Query all trains going from A to B
@@ -59,7 +59,7 @@ def book_ticket(ticket: schemas.TicketBook, db: Session = Depends(get_db), curre
     try:
         # Query the train which has the same id as the one passed in
         # with_for_update() locks the DB row, which ensures two users cannot book at the same time
-        train_query = db.query(models.Train).filter(models.Train.id == ticket.train_no).with_for_update()
+        train_query = db.query(models.Train).filter(models.Train.id == ticket.train_no) #.with_for_update()
         train = train_query.first()
 
         # Exception Handling: If train with passed in id doesnt exist, return 404 train doesnt exist 
@@ -82,11 +82,8 @@ def book_ticket(ticket: schemas.TicketBook, db: Session = Depends(get_db), curre
         new_ticket = models.Booking(user_id=current_user.id, **ticket.model_dump())
         db.add(new_ticket)
         # Update the seats on the train, minusing by however much tickets were booked
-        train_query.update({'seats': models.Train.seats - ticket.tickets}, synchronize_session='fetch')
-
-        # If a new transaction was started, then we commit it
-        if transaction is not None:
-            transaction.commit()
+        train_query.update({'seats': models.Train.seats - ticket.tickets})
+        db.commit()
 
     except:
         # If a new transaction was started then we can roll it back on error

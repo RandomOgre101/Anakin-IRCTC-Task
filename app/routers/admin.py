@@ -59,6 +59,7 @@ def admin_create_route(train_data: schemas.TrainCreate, admin = Depends(oauth2.v
     return new_train
 
 
+
 # ADMIN route to modify a train route's details
 # This route contains a dependency injection that establishes a connection to the database (I have used postgres here)
 # This route contains a dependency injection to make sure only admin can access this route
@@ -66,7 +67,7 @@ def admin_create_route(train_data: schemas.TrainCreate, admin = Depends(oauth2.v
 @router.put("/train/{train_id}", response_model=schemas.TrainCreateOut)
 def modify_train_details(train_id: int, train_data: schemas.TrainCreate, admin = Depends(oauth2.verify_admin), db: Session = Depends(get_db)):
 
-        # If the request is not of admin's, return 403 unauthorized access
+    # If the request is not of admin's, return 403 unauthorized access
     try:
         if not admin.id == 1:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized Access")  

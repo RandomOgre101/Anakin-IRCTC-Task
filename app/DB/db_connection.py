@@ -25,14 +25,14 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL)
 #                   autocommit is False because I want to manually commit the changes after a transaction
 #                   bind engine so the session is associated to the engine we created above
 #                   autoflush is False so the objects are not automatically flushed before each query
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Base class for declarative class definitions in models.py
 Base = declarative_base()
 
 # Function to establish a DB session
 def get_db():
-    db = SessionLocal()
+    db = TestingSessionLocal()
     try:
         yield db
     finally:

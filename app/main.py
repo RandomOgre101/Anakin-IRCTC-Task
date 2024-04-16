@@ -28,3 +28,7 @@ app.include_router(admin.router)
 app.include_router(user.router)
 app.include_router(user_booking.router)
 app.include_router(auth.router)
+
+@app.get("/")
+def test():
+    return {"message": "Hello World"}
